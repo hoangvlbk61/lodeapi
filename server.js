@@ -5,7 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 
-const connectDB = require('./config/database');
+const connectDB = require('./database');
 const { errorHandler, notFound } = require('./middlewares/error');
 
 // Import routes

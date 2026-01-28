@@ -1,12 +1,32 @@
 {
   "info": {
     "name": "Lottery Management API",
-    "description": "Collection for testing Lottery Management System API",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "description": "API Collection for Lottery Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12345"
   },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
   "variable": [
     {
-      "key": "base_url",
+      "key": "baseUrl",
       "value": "http://localhost:5000/api",
       "type": "string"
     },
@@ -35,11 +55,12 @@
               "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"fullName\": \"Test User\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/register",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "register"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Login",
@@ -50,7 +71,10 @@
                 "exec": [
                   "if (pm.response.code === 200) {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "    if (jsonData.data && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('token', jsonData.data.token);",
+                  "        pm.environment.set('token', jsonData.data.token);",
+                  "    }",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -70,38 +94,51 @@
               "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/login",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "login"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Me",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/auth/me",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "me"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Change Password",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -112,11 +149,12 @@
               "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/auth/change-password",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": ["{{baseUrl}}"],
               "path": ["auth", "change-password"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -126,29 +164,41 @@
         {
           "name": "Get All Customers",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/customers",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/customers",
+              "host": ["{{baseUrl}}"],
               "path": ["customers"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Create Customer",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -159,44 +209,57 @@
               "raw": "{\n  \"customerId\": \"17296\",\n  \"name\": \"Achu\",\n  \"prices\": {\n    \"de\": 0.72,\n    \"lo\": 21.7,\n    \"x2\": 0.56,\n    \"x3\": 0.56,\n    \"x4\": 0.56,\n    \"xiuNhay\": 1.1,\n    \"baCang\": 0.72\n  },\n  \"rewards\": {\n    \"thuongDe\": 70,\n    \"thuongLo\": 80,\n    \"thuongX2\": 10,\n    \"thuongX3\": 40,\n    \"thuongX4\": 100,\n    \"thuongBaCang\": 400\n  },\n  \"discountPercent\": 100,\n  \"type\": \"customer\",\n  \"status\": \"active\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/customers",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/customers",
+              "host": ["{{baseUrl}}"],
               "path": ["customers"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Customer by ID",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/customers/:id",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/customers/:id",
+              "host": ["{{baseUrl}}"],
               "path": ["customers", ":id"],
               "variable": [
                 {
                   "key": "id",
-                  "value": ""
+                  "value": "CUSTOMER_ID_HERE"
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update Customer",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "PUT",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -207,40 +270,47 @@
               "raw": "{\n  \"name\": \"Updated Name\",\n  \"discountPercent\": 95\n}"
             },
             "url": {
-              "raw": "{{base_url}}/customers/:id",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/customers/:id",
+              "host": ["{{baseUrl}}"],
               "path": ["customers", ":id"],
               "variable": [
                 {
                   "key": "id",
-                  "value": ""
+                  "value": "CUSTOMER_ID_HERE"
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Delete Customer",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/customers/:id",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/customers/:id",
+              "host": ["{{baseUrl}}"],
               "path": ["customers", ":id"],
               "variable": [
                 {
                   "key": "id",
-                  "value": ""
+                  "value": "CUSTOMER_ID_HERE"
                 }
               ]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -250,12 +320,18 @@
         {
           "name": "Calculate Transaction",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -263,24 +339,31 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"customerId\": \"CUSTOMER_ID_HERE\",\n  \"date\": \"2026-01-24\",\n  \"rawData\": \"12 100\\n34 50\\n56 30\",\n  \"type\": \"receive\"\n}"
+              "raw": "{\n  \"customerId\": \"CUSTOMER_ID_HERE\",\n  \"date\": \"2026-01-28\",\n  \"rawData\": \"12 100\\n34 50\\n56 30\",\n  \"type\": \"receive\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/transactions/calculate",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/transactions/calculate",
+              "host": ["{{baseUrl}}"],
               "path": ["transactions", "calculate"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Save Transaction",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -288,31 +371,67 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"customerId\": \"CUSTOMER_ID_HERE\",\n  \"date\": \"2026-01-24\",\n  \"rawData\": \"12 100\\n34 50\",\n  \"processedData\": {\n    \"de\": [{\"number\": \"12\", \"amount\": 100}, {\"number\": \"34\", \"amount\": 50}],\n    \"lo\": [],\n    \"x2\": [],\n    \"x3\": [],\n    \"x4\": [],\n    \"xiuNhay\": [],\n    \"baCang\": []\n  },\n  \"totals\": {\n    \"totalAmount\": 108,\n    \"discount\": 108,\n    \"netAmount\": 0\n  },\n  \"type\": \"receive\"\n}"
+              "raw": "{\n  \"customerId\": \"CUSTOMER_ID_HERE\",\n  \"date\": \"2026-01-28\",\n  \"rawData\": \"12 100\\n34 50\",\n  \"processedData\": {\n    \"de\": [{\"number\": \"12\", \"amount\": 100}, {\"number\": \"34\", \"amount\": 50}],\n    \"lo\": [],\n    \"x2\": [],\n    \"x3\": [],\n    \"x4\": [],\n    \"xiuNhay\": [],\n    \"baCang\": []\n  },\n  \"totals\": {\n    \"totalAmount\": 108,\n    \"discount\": 108,\n    \"netAmount\": 0\n  },\n  \"type\": \"receive\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/transactions/save",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/transactions/save",
+              "host": ["{{baseUrl}}"],
               "path": ["transactions", "save"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get All Transactions",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/transactions",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/transactions",
+              "host": ["{{baseUrl}}"],
               "path": ["transactions"]
             }
-          }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Transaction by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "TRANSACTION_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -322,29 +441,41 @@
         {
           "name": "Get Configuration",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/configurations",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/configurations",
+              "host": ["{{baseUrl}}"],
               "path": ["configurations"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update Configuration",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "PUT",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
               {
                 "key": "Content-Type",
                 "value": "application/json"
@@ -355,11 +486,12 @@
               "raw": "{\n  \"replaceRules\": [\n    {\"id\": 1807, \"oldChar\": \"á\", \"newChar\": \"A\"},\n    {\"id\": 1809, \"oldChar\": \"à\", \"newChar\": \"A\"}\n  ]\n}"
             },
             "url": {
-              "raw": "{{base_url}}/configurations",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/configurations",
+              "host": ["{{baseUrl}}"],
               "path": ["configurations"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -369,69 +501,116 @@
         {
           "name": "Daily Report",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/reports/daily?date=2026-01-24",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/reports/daily?date=2026-01-28",
+              "host": ["{{baseUrl}}"],
               "path": ["reports", "daily"],
               "query": [
                 {
                   "key": "date",
-                  "value": "2026-01-24"
+                  "value": "2026-01-28"
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Weekly Report",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/reports/weekly?startDate=2026-01-19&endDate=2026-01-25",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/reports/weekly?startDate=2026-01-20&endDate=2026-01-26",
+              "host": ["{{baseUrl}}"],
               "path": ["reports", "weekly"],
               "query": [
                 {
                   "key": "startDate",
-                  "value": "2026-01-19"
+                  "value": "2026-01-20"
                 },
                 {
                   "key": "endDate",
-                  "value": "2026-01-25"
+                  "value": "2026-01-26"
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Available Dates",
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{base_url}}/reports/available-dates",
-              "host": ["{{base_url}}"],
+              "raw": "{{baseUrl}}/reports/available-dates",
+              "host": ["{{baseUrl}}"],
               "path": ["reports", "available-dates"]
             }
-          }
+          },
+          "response": []
+        },
+        {
+          "name": "Customer Stats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/customer-stats/:customerId",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "customer-stats", ":customerId"],
+              "variable": [
+                {
+                  "key": "customerId",
+                  "value": "CUSTOMER_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }
