@@ -1142,7 +1142,19 @@ const parseDetails = (lines) => {
 
         const amountUnit = amountMatch[1];
         const numsPart = content.substring(0, amountMatch.index).trim();
-        const xqGroups = numsPart.split(/\s+/).filter(s => s.length > 0);
+        
+        // SMART SPLIT: Detect comma vs space
+        // Case 1: "121 232, 545 141" → has comma → split by comma
+        // Case 2: "121-232 545.141" → no comma → split by space
+        let xqGroups;
+        
+        if (numsPart.includes(',')) {
+          // Has comma → split by comma
+          xqGroups = numsPart.split(/\s*,\s*/).filter(s => s.length > 0);
+        } else {
+          // No comma → split by space
+          xqGroups = numsPart.split(/\s+/).filter(s => s.length > 0);
+        }
 
         xqGroups.forEach(group => {
           const numbers = parseXienNumbers(group);
