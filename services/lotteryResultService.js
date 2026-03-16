@@ -102,6 +102,9 @@ class LotteryResultService {
       }
 
       console.log('✅ Data fetched successfully:', response.data);
+      if(response.data.results) {
+        response.data.results.DB = response.data.results.DB || response.data.results["ĐB"]
+      }
       return response.data;
     } catch (error) {
       console.error('❌ Error fetching lottery result:', error.message);
@@ -147,6 +150,7 @@ class LotteryResultService {
         });
 
         // Parse results từ data.results
+        console.log("🚀 ~ LotteryResultService ~ saveResult ~ data.results:", data.results)
         if (data.results) {
           result.results = {
             DB: data.results.DB || [],

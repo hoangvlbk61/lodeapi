@@ -108,6 +108,7 @@ class LotteryScheduler {
       console.log(`   - Date: ${result.date}`);
       console.log(`   - Status: ${result.status}`);
       console.log(`   - Time: ${result.time}`);
+      console.log(`   - Data: ${result.data}`);
       console.log('='.repeat(60) + '\n');
 
       return result;
