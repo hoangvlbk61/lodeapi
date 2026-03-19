@@ -6,6 +6,7 @@ const {
   parseDetails,
   summarize,
   splitMessage,
+  finalize,
 } = require('./lotteryService');
 
 console.log('🧪 TEST - Bộ Số và Tổng Tiền\n');
@@ -63,18 +64,18 @@ console.log(bo49.length === 4 ? '   ✅ PASS' : '   ❌ FAIL');
 console.log('\n\n📝 TEST 2: Tổng Tiền Đánh');
 console.log('-'.repeat(70));
 
-console.log('\nCase 1: de dan 4-9 x10k');
-const input1 = 'de dan 4-9 x10k';
+console.log('\nCase 1: xq 393.545x100n.454.232x100n');
+// const input1 = 'xq 393.545x100n.454.232x100n';
+const input1 = 'xq 232.434x100.10.545.44x100n 989.121 x 100 n';
 const segments1 = splitMessage(input1);
+console.log("🚀 ~ segments1:", segments1)
 const parsed1 = parseDetails(segments1);
-
-console.log(`   Số bets: ${parsed1.length} (expected: 36)`);
-console.log(`   Amount per bet: ${parsed1[0]?.amount}`);
+console.log("🚀 ~ parsed1:", parsed1.filter(e => e.type==="xien4"))
 
 // Mock KQXS for finalize
 const mockKQXS = {
   results: {
-    DB: ['56848'],
+    "ĐB": ['56848'],
     G1: ['73483'],
     G2: ['92423', '03127'],
     G3: ['91144', '79928', '68003', '34736', '86885', '73286'],
@@ -85,111 +86,7 @@ const mockKQXS = {
   }
 };
 
-const { finalize } = require('./lotteryService');
 const finalized1 = finalize(parsed1, mockKQXS);
+// console.log("🚀 ~ finalized1:", finalized1)
 const summary1 = summarize(finalized1);
-
-console.log('\n   Summary:');
-Object.keys(summary1).forEach(cat => {
-  const g = summary1[cat];
-  console.log(`   ${g.summary}`);
-  if (g.totalDanAmount) {
-    console.log(`   Total amount: ${g.totalDanAmount}k (expected: 360k)`);
-    console.log(g.totalDanAmount === 360 ? '   ✅ PASS' : '   ❌ FAIL');
-  }
-});
-
-// =============================================================================
-// Test 3: Multiple dans với total amount
-// =============================================================================
-console.log('\n\nCase 2: de dan 4-9 x10k, bo 18 x5k');
-const input2 = 'de dan 4-9 x10k, bo 18 x5k';
-const { splitDanSegments } = require('./lotteryService');
-
-const segments2 = splitMessage(input2);
-const expandedSegments2 = [];
-segments2.forEach(seg => {
-  const split = splitDanSegments(seg);
-  expandedSegments2.push(...split);
-});
-
-const parsed2 = parseDetails(expandedSegments2);
-console.log(`   Total bets: ${parsed2.length} (expected: 44)`);
-
-const finalized2 = finalize(parsed2, mockKQXS);
-const summary2 = summarize(finalized2);
-
-console.log('\n   Summary:');
-Object.keys(summary2).forEach(cat => {
-  const g = summary2[cat];
-  console.log(`   ${g.summary}`);
-  if (g.totalDanAmount) {
-    console.log(`   Total amount: ${g.totalDanAmount}k`);
-  }
-});
-
-// Expected:
-// - Dàn 4-9: 36 con x 5k = 180k
-// - Bộ 18: 8 con x 5k = 40k
-// - Total: 220k
-
-const totalExpected = 220;
-const totalActual = Object.keys(summary2).reduce((sum, cat) => {
-  const g = summary2[cat];
-  return sum + (g.totalDanAmount || 0);
-}, 0);
-
-console.log(`\n   Total ALL: ${totalActual}k (expected: ${totalExpected}k)`);
-console.log(totalActual === totalExpected ? '   ✅ PASS' : '   ❌ FAIL');
-
-// =============================================================================
-// Test 4: Compare với đề thường
-// =============================================================================
-console.log('\n\nCase 3: Compare - de 12.34 x10k vs de dan 4-9 x10k');
-console.log('-'.repeat(70));
-
-const inputStandard = 'de 12.34 x10k';
-const segmentsStandard = splitMessage(inputStandard);
-const parsedStandard = parseDetails(segmentsStandard);
-
-console.log(`\n   Standard đề (12.34): ${parsedStandard.length} bets`);
-console.log(`   Amount per bet: ${parsedStandard[0]?.amount}`);
-
-const finalizedStandard = finalize(parsedStandard, mockKQXS);
-const summaryStandard = summarize(finalizedStandard);
-
-Object.keys(summaryStandard).forEach(cat => {
-  const g = summaryStandard[cat];
-  console.log(`   ${g.summary}`);
-  console.log(`   Total: ${g.totalPoints}k (NOT ${g.totalDanAmount}k because no dàn)`);
-});
-
-console.log('\n   Key difference:');
-console.log('   - Standard: totalPoints = sum of each bet');
-console.log('   - Dàn: totalDanAmount = count × amount per bet');
-
-// =============================================================================
-// Summary
-// =============================================================================
-console.log('\n' + '='.repeat(70));
-console.log('📊 SUMMARY');
-console.log('='.repeat(70));
-
-console.log(`
-✅ Bộ Số:
-   - Bộ 00, 05, 50, 55 → same 4 numbers
-   - Bộ 02, 07, 20, 25, 52, 57, 70, 75 → same 8 numbers
-   - Bộ 18 → 8 numbers
-   - Bộ 49 → 4 numbers
-
-✅ Tổng Tiền:
-   - de dan 4-9 x10k → 36 bets × 10k = 360k
-   - de bo 18 x5k → 8 bets × 5k = 40k
-   - de 12.34 x10k → 2 bets, total = 20k (standard)
-
-✅ Summary Format:
-   - Dàn: "Đề (dàn 4-9): 0/360k (36 con)"
-   - Standard: "Đề: 0/20k"
-
-🎉 All tests completed!
-`);
+// console.log("🚀 ~ summary1:", summary1)

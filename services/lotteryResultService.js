@@ -4,7 +4,7 @@ const { format, parse, isValid } = require('date-fns');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 
 const LOTTERY_API_URL = 'https://api-xsmb-today.onrender.com/api/v1';
-// const HTTP_PROXY = 'http://hoangvl:tsdv2025B@10.116.16.12:3128';
+const HTTP_PROXY = 'http://hoangvl:tsdv2025B@10.116.16.12:3128';
 
 // ─── Smart Date Parser ───────────────────────────────────────────────────────
 // Hỗ trợ các định dạng: 15-3-2026, 15/03/2026, 2026-03-15, 03/15/2026, ...
@@ -88,12 +88,12 @@ class LotteryResultService {
       };
 
       // Sử dụng proxy nếu có
-      // const proxyUrl = process.env.HTTP_PROXY || process.env.http_proxy || HTTP_PROXY;
-      // if (proxyUrl) {
-      //   console.log(`🔀 Using proxy: ${proxyUrl}`);
-      //   axiosConfig.httpsAgent = new HttpsProxyAgent(proxyUrl);
-      //   axiosConfig.proxy = false;
-      // }
+      const proxyUrl = process.env.HTTP_PROXY || process.env.http_proxy || HTTP_PROXY;
+      if (proxyUrl) {
+        console.log(`🔀 Using proxy: ${proxyUrl}`);
+        axiosConfig.httpsAgent = new HttpsProxyAgent(proxyUrl);
+        axiosConfig.proxy = false;
+      }
 
       const response = await axios.get(LOTTERY_API_URL, axiosConfig);
 
