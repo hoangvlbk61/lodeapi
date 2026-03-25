@@ -95,12 +95,12 @@ const parseDetails = (lines) => {
 
 // =============================================================================
 
-const inputRaw = "đ 131.434 x15n 454.656 x6k 23 12.13 x4đ lo 131.434 x15n";
+const inputRaw = "đ 131.434 x15n 454.656 x6k 23 12.13 x4đ lo 131.434 x15n xiên 12.21 x10k xiên quây 20.22.343 11.545.21 x20k";
 
 // Bước 1: Tách tin
 const step1 = splitMessage(inputRaw); 
 console.log("🚀 ~ step1:", step1)
-// Kết quả: ["đ 131.434 x15n 454.656 x6k 23 12.13 x4đ", "lo 131.434 x15n"]
+// Kết quả: ["đ 131.434 x15n 454.656 x6k 23 12.13 x4đ xiên 12.21 x10k xiên quây 20.22.343 11.545.21 x20k", "lo 131.434 x15n"]
 
 // Bước 2: Phân tích
 const step2 = parseDetails(step1);
