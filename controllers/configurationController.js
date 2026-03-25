@@ -17,7 +17,7 @@ exports.getConfiguration = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: config,
+      data: config.replaceRules,
     });
   } catch (error) {
     next(error);
@@ -72,7 +72,7 @@ exports.updateConfiguration = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Cập nhật cấu hình thành công',
-      data: config,
+      data: replaceRules,
     });
   } catch (error) {
     next(error);
