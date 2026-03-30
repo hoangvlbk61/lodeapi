@@ -1358,25 +1358,32 @@ const parseDetails = (lines) => {
                     });
                 }
             } else if (type === "xq") {
-                const pattern = /([\d][\d.\-; ]*?)\s*x\s*([0-9.]+[knđd]?)/gi;
+                const fullContent = content.trim();
+                
+                // Pattern mới: Tìm "x amount" và DỪNG NGAY khi gặp dấu . (hoặc space, hoặc x tiếp theo)
+                // Non-greedy + positive lookahead để cắt amount sạch
+                const pattern = /([\d][\d.\-; ]*?)\s*x\s*([0-9.]+[knđd]?)(?=\s*[\s.,x]|$)/gi;
+                
                 let match;
                 let foundAny = false;
 
-                while ((match = pattern.exec(content)) !== null) {
+                while ((match = pattern.exec(fullContent)) !== null) {
                     foundAny = true;
-                    const rawNums = match[1].trim();
-                    const amountUnit = match[2];
+                    
+                    const rawNumsPart = match[1].trim();      // phần số trước x
+                    let amountUnit = match[2];                // amount sạch (chỉ "100", "100n", ...)
 
-                    // SMART SPLIT: comma hay space (giữ nguyên logic cũ)
+                    // Nếu amount bị dính thêm .something (do regex lookahead chưa đủ mạnh), cắt lấy phần trước dấu . đầu tiên
+                    if (amountUnit.includes('.')) {
+                        amountUnit = amountUnit.split('.')[0];
+                    }
+
+                    // SMART SPLIT nhóm số
                     let xqGroups;
-                    if (rawNums.includes(",")) {
-                        xqGroups = rawNums
-                            .split(/\s*,\s*/)
-                            .filter((s) => s.length > 0);
+                    if (rawNumsPart.includes(",")) {
+                        xqGroups = rawNumsPart.split(/\s*,\s*/).filter(s => s.length > 0);
                     } else {
-                        xqGroups = rawNums
-                            .split(/\s+/)
-                            .filter((s) => s.length > 0);
+                        xqGroups = rawNumsPart.split(/\s+/).filter(s => s.length > 0);
                     }
 
                     xqGroups.forEach((group) => {
@@ -1426,7 +1433,6 @@ const parseDetails = (lines) => {
 
                         const uniqueNums = [...new Set(expandedNumbers)];
 
-                        // Tạo tất cả tổ hợp xiên 2,3,4...
                         for (let k = 2; k <= uniqueNums.length; k++) {
                             const combos = combinations(uniqueNums, k);
                             combos.forEach((combo) => {

@@ -217,84 +217,85 @@ const parseDetails = (lines) => {
         finalResults.push({ type: 'xien', number: '?', amount: '?', isValid: false, originalLine: line, error: 'Không parse được xiên' });
       }
 
-    } else if (type === 'xq') {
-      // XIÊN QUÂY: "20.22.343 11.545.21 x20k"
-      // Mỗi cụm số (nối bằng . - ;) là 1 con xiên quây
-      // Tất cả cụm dùng chung 1 tiền cuối
-      // Xiên quây N số → tổ hợp xiên 2, xiên 3, ..., xiên N
+    else if (type === 'xq') {
+  const fullContent = content.trim();
+  
+  // Pattern cải tiến: amount dừng ngay trước . hoặc space hoặc ký tự tiếp theo không phải số/đơn vị
+  const amountPattern = /x\s*([0-9.]+[knđd]?)(?=\s*[\s.,x]|$)/gi;
+  
+  let amountMatch;
+  let prevEnd = 0;
+  let foundAny = false;
 
-      // Tìm tiền ở cuối
-      const amountMatch = content.match(/x\s*([0-9.]+[knđd])\s*$/i);
-      if (!amountMatch) {
-        finalResults.push({ type: 'xq', number: '?', amount: '?', isValid: false, originalLine: line, error: 'Không tìm thấy tiền cho xiên quây' });
+  while ((amountMatch = amountPattern.exec(fullContent)) !== null) {
+    foundAny = true;
+    const amountUnit = amountMatch[1];           // chỉ lấy "100", "100n", ...
+    const matchFull = amountMatch[0];            // ví dụ: "x100"
+    const xStart = amountMatch.index;
+
+    // Lấy phần numbers trước "x" này
+    let rawNums = fullContent.substring(prevEnd, xStart).trim();
+    prevEnd = xStart + matchFull.length;
+
+    if (!rawNums) continue;
+
+    // SMART SPLIT
+    let xqGroups = rawNums.includes(',')
+      ? rawNums.split(/\s*,\s*/).filter(s => s.length > 0)
+      : rawNums.split(/\s+/).filter(s => s.length > 0);
+
+    xqGroups.forEach(group => {
+      const numbers = parseXienNumbers(group);
+      const expandedNumbers = [];
+      let hasError = false;
+      let errorMsg = '';
+
+      numbers.forEach(num => {
+        if (num.length === 2) {
+          expandedNumbers.push(num);
+        } else if (num.length === 3) {
+          const pairs = getSymmetricPairs(num);
+          if (pairs) expandedNumbers.push(...pairs);
+          else {
+            hasError = true;
+            errorMsg = `Số 3 chữ số không đối xứng trong XQ: ${num}`;
+          }
+        } else {
+          hasError = true;
+          errorMsg = `Số không hợp lệ trong XQ: ${num}`;
+        }
+      });
+
+      if (hasError) {
+        finalResults.push({ type: 'xq', number: '?', amount: amountUnit, isValid: false, originalLine: line, error: errorMsg });
+        return;
+      }
+      if (expandedNumbers.length < 2) {
+        finalResults.push({ type: 'xq', number: '?', amount: amountUnit, isValid: false, originalLine: line, error: 'XQ cần ít nhất 2 số' });
         return;
       }
 
-      const amountUnit = amountMatch[1];
-      // Phần còn lại trước tiền
-      const numsPart = content.substring(0, amountMatch.index).trim();
+      const uniqueNums = [...new Set(expandedNumbers)];
 
-      // Tách các con xiên quây bằng khoảng trắng (nhưng không tách trong 1 con)
-      // Mỗi con nối bằng . - ; (không có khoảng trắng bên trong)
-      // VD: "20.22.343 11.545.21" → ["20.22.343", "11.545.21"]
-      // Nhưng cũng có thể dùng khoảng trắng trong 1 con nếu không có dấu nối
-      // → Quy ước: dấu . - ; nối trong 1 con, khoảng trắng tách các con
-      const xqGroups = numsPart.split(/\s+/).filter(s => s.length > 0);
-
-      // Gộp lại: mỗi group là 1 con xiên quây
-      xqGroups.forEach(group => {
-        const numbers = parseXienNumbers(group);
-
-        // Xử lý số 3 chữ số đối xứng trong xiên quây
-        const expandedNumbers = [];
-        let hasError = false;
-        let errorMsg = '';
-
-        numbers.forEach(num => {
-          if (num.length === 2) {
-            expandedNumbers.push(num);
-          } else if (num.length === 3) {
-            const pairs = getSymmetricPairs(num);
-            if (pairs) {
-              // Số 3 chữ số đối xứng → tách thành 2 số 2 chữ số
-              expandedNumbers.push(...pairs);
-            } else {
-              hasError = true;
-              errorMsg = `Số 3 chữ số không đối xứng trong XQ: ${num}`;
-            }
-          } else {
-            hasError = true;
-            errorMsg = `Số không hợp lệ trong XQ: ${num}`;
-          }
-        });
-
-        if (hasError) {
-          finalResults.push({ type: 'xq', number: '?', amount: amountUnit, isValid: false, originalLine: line, error: errorMsg });
-          return;
-        }
-
-        if (expandedNumbers.length < 2) {
-          finalResults.push({ type: 'xq', number: '?', amount: amountUnit, isValid: false, originalLine: line, error: 'XQ cần ít nhất 2 số' });
-          return;
-        }
-
-        // Unique hóa
-        const uniqueNums = [...new Set(expandedNumbers)];
-
-        // Tạo tổ hợp: xiên 2, xiên 3, ..., xiên N
-        for (let k = 2; k <= uniqueNums.length; k++) {
-          const combos = combinations(uniqueNums, k);
-          combos.forEach(combo => {
-            finalResults.push({
-              type: `xien${k}`,  // xien2, xien3, xien4...
-              subType: 'xq',     // đánh dấu gốc là xiên quây
-              numbers: combo,
-              amount: amountUnit,
-              isValid: true,
-            });
+      for (let k = 2; k <= uniqueNums.length; k++) {
+        const combos = combinations(uniqueNums, k);
+        combos.forEach(combo => {
+          finalResults.push({
+            type: `xien${k}`,
+            subType: 'xq',
+            numbers: combo,
+            amount: amountUnit,
+            isValid: true,
           });
-        }
-      });
+        });
+      }
+    });
+  }
+
+  if (!foundAny) {
+    finalResults.push({ type: 'xq', number: '?', amount: '?', isValid: false, originalLine: line, error: 'Không tìm thấy tiền cho xiên quây' });
+  }
+}
     } else {
       finalResults.push({ type: 'unknown', number: '?', amount: '?', isValid: false, originalLine: line, error: 'Không nhận dạng được loại' });
     }
@@ -465,7 +466,9 @@ const summarize = (finalizedBets) => {
 // TEST
 // =============================================================================
 
-const inputRaw = "đ 131.434 x15n 454.656 x6k 23 12.13 x4đ lo 131.434 x15n xiên 12.21 x10k xiên quây 20.22.343 11.545.21 x20k";
+const inputRaw = `đ 131.434 x15n 454.656 x6k 23 12.13 x4đ lo 131.434 x15n xiên 12.21 x10k xiên quây 20.22.343 11.545.21 x20k
+xq 232.434x100.10.545.44x100n 989.121 x 100 n
+`;
 
 console.log("=== INPUT ===");
 console.log(inputRaw);
